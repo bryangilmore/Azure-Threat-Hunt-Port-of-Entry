@@ -88,8 +88,11 @@ High-level attack flow:
 
 ### 1. Initial access (Flags 1 & 2)
 
-- **Query:** `queries/01_initial_access_logon.txt`  
-- **Screenshot:** `screenshots/01_initial_access_logon.png`  
+- **Query:** [queries/01_initial_access_logon.txt](queries/01_initial_access_logon.txt)
+
+**Screenshot – RDP logons from external IP:**
+
+![Initial access – RDP logon](screenshots/01_initial_access_logon.png)
 
 This query pivots on `DeviceLogonEvents` for the host `AZUKI-SL` and surfaces RDP logons.  
 From the results:
@@ -103,32 +106,35 @@ These answer Flags 1 and 2 and support **T1133 External Remote Services**.
 
 ### 2. Discovery & staging (Flags 3 & 4)
 
-- **Network discovery:** `queries/02_discovery_arp.txt`  
-  - Shows `arp.exe -a` executed after initial access.  
-  - This reflects **T1016 System Network Configuration Discovery**.
+- **Network discovery query:** [queries/02_discovery_arp.txt](queries/02_discovery_arp.txt)  
+  - Shows `arp.exe -a` executed after initial access, reflecting **T1016 System Network Configuration Discovery**.
 
-- **Staging directory:** `queries/03_staging_directory.txt`  
-  - Tracks creation and use of `C:\ProgramData\WindowsCache\` as the primary malware staging area.  
+- **Staging directory query:** [queries/03_staging_directory.txt](queries/03_staging_directory.txt)  
+  - Tracks creation and use of `C:\ProgramData\WindowsCache\` as the primary malware staging area.
 
-Screenshots:
+**Screenshots – discovery and staging:**
 
-- `screenshots/02_discovery_arp.png`  
-- `screenshots/03_staging_directory.png`
+![Network discovery – arp](screenshots/02_discovery_arp.png)
+
+![Staging directory – WindowsCache](screenshots/03_staging_directory.png)
 
 ---
 
 ### 3. Defender exclusions (Flags 5 & 6)
 
-- **Extension exclusions:** `queries/04a_defender_extension_exclusions.txt`  
+- **Extension exclusions query:**  
+  [queries/04a_defender_extension_exclusions.txt](queries/04a_defender_extension_exclusions.txt)  
   - `DeviceRegistryEvents` filtered on `Windows Defender\Exclusions\Extensions` show multiple file extensions (.bat, .ps1, .exe, etc.) being excluded.
 
-- **Path exclusions:** `queries/04b_defender_path_exclusions.txt`  
+- **Path exclusions query:**  
+  [queries/04b_defender_path_exclusions.txt](queries/04b_defender_path_exclusions.txt)  
   - Similar filter for `Windows Defender\Exclusions\Paths`, revealing a temp directory being excluded from scanning.
 
-Screenshots:
+**Screenshots – Defender exclusions:**
 
-- `screenshots/04a_defender_extension_exclusions.png`  
-- `screenshots/04b_defender_path_exclusions.png`  
+![Defender extension exclusions](screenshots/04a_defender_extension_exclusions.png)
+
+![Defender path exclusions](screenshots/04b_defender_path_exclusions.png)
 
 This behavior maps to **T1562.001 Impair Defenses: Disable or Modify Tools** and demonstrates how the attacker attempted to blind AV before running their tools.
 
@@ -136,18 +142,19 @@ This behavior maps to **T1562.001 Impair Defenses: Disable or Modify Tools** and
 
 ### 4. Download utility & scheduled task (Flags 7, 8 & 9)
 
-- **Ingress tool transfer (certutil):**  
-  `queries/05a_certutil_downloads_to_windowscache.txt`  
+- **Ingress tool transfer (certutil) query:**  
+  [queries/05a_certutil_downloads_to_windowscache.txt](queries/05a_certutil_downloads_to_windowscache.txt)  
   - `DeviceProcessEvents` search for `FileName == "certutil.exe"` with URLs and an output path under `C:\ProgramData\WindowsCache\`.
 
-- **Scheduled task persistence:**  
-  `queries/05b_scheduled_task_persistence.txt`  
+- **Scheduled task persistence query:**  
+  [queries/05b_scheduled_task_persistence.txt](queries/05b_scheduled_task_persistence.txt)  
   - `schtasks.exe /create` defining task `"Windows Update Check"` with `/tr C:\ProgramData\WindowsCache\svchost.exe`.
 
-Screenshots:
+**Screenshots – certutil downloads and scheduled task:**
 
-- `screenshots/05a_certutil_downloads_to_windowscache.png`  
-- `screenshots/05b_scheduled_task_persistence.png`
+![certutil downloads to WindowsCache](screenshots/05a_certutil_downloads_to_windowscache.png)
+
+![Scheduled task – Windows Update Check](screenshots/05b_scheduled_task_persistence.png)
 
 These support **T1105 Ingress Tool Transfer** and **T1053.005 Scheduled Task**.
 
@@ -155,8 +162,11 @@ These support **T1105 Ingress Tool Transfer** and **T1053.005 Scheduled Task**.
 
 ### 5. C2 traffic (Flags 10 & 11)
 
-- **Query:** `queries/06_c2_traffic_from_windowscache.txt`  
-- **Screenshot:** `screenshots/06_c2_traffic_from_windowscache.png`
+- **Query:** [queries/06_c2_traffic_from_windowschache.txt](queries/06_c2_traffic_from_windowschache.txt)
+
+**Screenshot – C2 traffic from staged binaries:**
+
+![C2 traffic from WindowsCache](screenshots/06_c2_traffic_from_windowschache.png)
 
 The query pivots on `DeviceNetworkEvents`, focusing on processes running from `C:\ProgramData\WindowsCache\`.  
 
@@ -171,8 +181,12 @@ This identifies the C2 endpoint and protocol for Flags 10 and 11.
 
 ### 6. Credential dumping (Flags 12 & 13)
 
-- **Query:** `queries/07_cred_dumping_mm_sekurlsa_logonpasswords.txt`  
-- **Screenshot:** `screenshots/07_cred_dumping.png`
+- **Query:**  
+  [queries/07_cred_dumping_mm_sekurlsa_logonpasswords.txt](queries/07_cred_dumping_mm_sekurlsa_logonpasswords.txt)
+
+**Screenshot – mm.exe running sekurlsa::logonpasswords:**
+
+![Credential dumping – mm.exe](screenshots/07_cred_dumping.png)
 
 This hunt over `DeviceProcessEvents` isolates:
 
@@ -185,18 +199,19 @@ Together, they confirm LSASS credential dumping consistent with **T1003.001 OS C
 
 ### 7. Collection & exfiltration (Flags 14 & 15)
 
-- **Archive creation:**  
-  `queries/08a_archive_export_data.txt`  
+- **Archive creation query:**  
+  [queries/08a_archive_export_data.txt](queries/08a_archive_export_data.txt)  
   - `DeviceFileEvents` shows `export-data.zip` created in `C:\ProgramData\WindowsCache\`.
 
-- **Exfil over Discord:**  
-  `queries/08b_exfil_discord.txt`  
+- **Exfiltration query:**  
+  [queries/08b_exfil_discord.txt](queries/08b_exfil_discord.txt)  
   - `DeviceNetworkEvents` shows `curl.exe` making HTTPS requests to `discord.com`, coinciding with the ZIP creation.
 
-Screenshots:
+**Screenshots – archive and exfiltration:**
 
-- `screenshots/08a_archive_export_data.png`  
-- `screenshots/08b_exfil_discord.png`
+![Archive creation – export-data.zip](screenshots/08a_archive_export_data.png)
+
+![Exfiltration to Discord via curl.exe](screenshots/08b_exfil_discord.png)
 
 These demonstrate **T1560 Archive Collected Data** and **T1567 Exfiltration Over Web Service**.
 
@@ -204,25 +219,30 @@ These demonstrate **T1560 Archive Collected Data** and **T1567 Exfiltration Over
 
 ### 8. Anti-forensics & backdoor account (Flags 16 & 17)
 
-- **Log clearing:**  
-  `queries/09a_log_clearing_wevtuil.txt`  
+- **Log clearing query:**  
+  [queries/09a_log_clearing_wevtuil.txt](queries/09a_log_clearing_wevtuil.txt)  
   - Shows `wevtutil.exe cl Security`, clearing the Windows Security log (**T1070.001**).
 
-- **Backdoor account:**  
-  `queries/09b_backdoor_account_support.txt`  
+- **Backdoor account query:**  
+  [queries/09b_backdoor_account_support.txt](queries/09b_backdoor_account_support.txt)  
   - `DeviceEvents` entry with `ActionType == "UserAccountCreated"` and `AccountName == "support"` – a hidden persistence pathway (**T1136.001**).
 
-Screenshots:
+**Screenshots – anti-forensics and backdoor account:**
 
-- `screenshots/09a_log_clearing_wevtuil.png`  
-- `screenshots/09b_backdoor_account_support.png`
+![Log clearing – wevtutil cl Security](screenshots/09a_log_clearing_wevtuil.png)
+
+![Backdoor account – support](screenshots/09b_backdoor_account_support.png)
 
 ---
 
 ### 9. Malicious script (Flag 18)
 
-- **Query:** `queries/10_malicious_script_wupdate.txt`  
-- **Screenshot:** `screenshots/10_malicious_script_wupdate.png`
+- **Query:**  
+  [queries/10_malicious_script_wupdate.txt](queries/10_malicious_script_wupdate.txt)
+
+**Screenshot – malicious PowerShell script:**
+
+![Malicious script – wupdate.ps1](screenshots/10_malicious_script_wupdate.png)
 
 This query locates creation and/or execution of the script `wupdate.ps1`, used to orchestrate parts of the attack using **PowerShell** (**T1059.001**).
 
@@ -230,8 +250,12 @@ This query locates creation and/or execution of the script `wupdate.ps1`, used t
 
 ### 10. Lateral movement (Flags 19 & 20)
 
-- **Query:** `queries/11_lateral_movement_cmdkey_mstsc.txt`  
-- **Screenshot:** `screenshots/11_lateral_movement.png`
+- **Query:**  
+  [queries/11_lateral_movement_cmdkey_mstsc.txt](queries/11_lateral_movement_cmdkey_mstsc.txt)
+
+**Screenshot – cmdkey + mstsc lateral movement:**
+
+![Lateral movement – cmdkey and mstsc](screenshots/11_lateral_movement.png)
 
 The results clearly show:
 
