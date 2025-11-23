@@ -1,0 +1,9 @@
+// Malicious PowerShell script used to automate the attack (Flag 18)
+
+DeviceFileEvents
+| where DeviceName == "azuki-sl"
+| where FileName == "wupdate.ps1"
+| project Timestamp,
+         FileName,
+         FolderPath
+| order by Timestamp asc

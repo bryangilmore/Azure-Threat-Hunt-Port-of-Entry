@@ -1,0 +1,10 @@
+// Persistence: scheduled task pointing at malware in the staging directory
+
+DeviceProcessEvents
+| where DeviceName == "azuki-sl"
+| where FileName == "schtasks.exe"
+| where ProcessCommandLine has "/create"
+| project Timestamp,
+         FileName,
+         ProcessCommandLine
+| order by Timestamp asc

@@ -1,0 +1,9 @@
+// Anti-forensics: clearing Windows event logs (Flag 16)
+
+DeviceProcessEvents
+| where DeviceName == "azuki-sl"
+| where FileName == "wevtutil.exe"
+| project Timestamp,
+         FileName,
+         ProcessCommandLine
+| order by Timestamp asc

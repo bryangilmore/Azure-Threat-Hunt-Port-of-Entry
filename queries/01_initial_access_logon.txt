@@ -1,0 +1,4 @@
+DeviceLogonEvents
+| where DeviceName == "azuki-sl"
+| project Timestamp, AccountName, RemoteIP, LogonType, ActionType
+| order by Timestamp asc

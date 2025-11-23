@@ -1,0 +1,9 @@
+// Windows Defender extension exclusions on azuki-sl
+DeviceRegistryEvents
+| where DeviceName == "azuki-sl"
+| where RegistryKey has @"Windows Defender\Exclusions\Extensions"
+| project Timestamp,
+         RegistryKey,
+         RegistryValueName,
+         RegistryValueData
+| order by Timestamp asc

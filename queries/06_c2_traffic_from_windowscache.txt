@@ -1,0 +1,12 @@
+// C2 traffic from malware staged in C:\ProgramData\WindowsCache
+
+DeviceNetworkEvents
+| where DeviceName == "azuki-sl"
+| where InitiatingProcessFolderPath has @"C:\ProgramData\WindowsCache"
+| project Timestamp,
+         InitiatingProcessFileName,
+         InitiatingProcessFolderPath,
+         RemoteIP,
+         RemotePort,
+         RemoteUrl
+| order by Timestamp asc

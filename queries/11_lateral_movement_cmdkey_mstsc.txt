@@ -1,0 +1,9 @@
+// Lateral movement to 10.1.0.188 using cmdkey + mstsc (Flags 19 & 20)
+
+DeviceProcessEvents
+| where DeviceName == "azuki-sl"
+| where FileName in ("cmdkey.exe", "mstsc.exe")
+| project Timestamp,
+         FileName,
+         ProcessCommandLine
+| order by Timestamp asc

@@ -1,0 +1,10 @@
+// Archive creation in the staging directory (Flag 14)
+
+DeviceFileEvents
+| where DeviceName == "azuki-sl"
+| where FolderPath startswith @"C:\ProgramData\WindowsCache"
+| where FileName endswith ".zip"
+| project Timestamp,
+         FileName,
+         FolderPath
+| order by Timestamp asc

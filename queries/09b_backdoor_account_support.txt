@@ -1,0 +1,10 @@
+// Backdoor local account creation (Flag 17)
+
+DeviceEvents
+| where DeviceName == "azuki-sl"
+| where ActionType == "UserAccountCreated"
+| project Timestamp,
+         ActionType,
+         AccountName,
+         AdditionalFields
+| order by Timestamp asc

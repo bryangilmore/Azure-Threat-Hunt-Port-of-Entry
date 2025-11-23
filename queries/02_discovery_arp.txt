@@ -1,0 +1,7 @@
+// General network discovery on azuki-sl
+
+DeviceProcessEvents
+| where DeviceName == "azuki-sl"
+| where FileName in ("ipconfig.exe", "ARP.EXE", "nbtstat.exe")
+| project Timestamp, FileName, ProcessCommandLine
+| order by Timestamp asc

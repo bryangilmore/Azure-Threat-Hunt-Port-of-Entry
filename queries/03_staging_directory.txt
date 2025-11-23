@@ -1,0 +1,7 @@
+DeviceProcessEvents
+| where DeviceName == "azuki-sl"
+| where ProcessCommandLine has "WindowsCache"
+| project Timestamp,
+         FileName,
+         ProcessCommandLine
+| order by Timestamp asc

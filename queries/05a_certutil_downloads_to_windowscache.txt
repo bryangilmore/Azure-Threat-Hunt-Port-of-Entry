@@ -1,0 +1,10 @@
+// Download utility abuse: certutil.exe saving payloads to the staging directory
+
+DeviceProcessEvents
+| where DeviceName == "azuki-sl"
+| where FileName == "certutil.exe"
+| where ProcessCommandLine has @"C:\ProgramData\WindowsCache"
+| project Timestamp,
+         FileName,
+         ProcessCommandLine
+| order by Timestamp asc

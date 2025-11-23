@@ -1,0 +1,13 @@
+// Exfiltration over HTTPS to Discord (Flag 15)
+
+DeviceNetworkEvents
+| where DeviceName == "azuki-sl"
+| where RemotePort == 443
+| where RemoteUrl contains "discord.com"
+| project Timestamp,
+         InitiatingProcessFileName,
+         InitiatingProcessFolderPath,
+         RemoteIP,
+         RemotePort,
+         RemoteUrl
+| order by Timestamp asc
